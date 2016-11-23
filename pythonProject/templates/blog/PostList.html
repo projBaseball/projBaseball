@@ -1,0 +1,13 @@
+{% load staticfiles %}
+<head>
+    <link rel="stylesheet" href="{% static 'css/blog.css' %}">
+</head>
+<body>
+    <h1>It Works!</h1>
+    {% for post in posts %}
+        <!--{{ post }}-->
+        <h2>published: {{ post.publishedDate }}</h2><br>
+        <h3><a href="#">title: {{ post.title }}</a></h3><br>
+        <p>{{ post.text | linebreaksbr }}</p>
+    {% endfor %}
+</body>

@@ -1,0 +1,2 @@
+global staticTest
+staticTest = "test"
