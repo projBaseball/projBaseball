@@ -1,0 +1,227 @@
+#자료 제공 
+#https://data.kma.go.kr/data/grnd/selectAsosList.do?pgmNo=34
+#https://ko.wikipedia.org/wiki/대한민국의_야구장_목록
+
+library(e1071)
+
+setwd("C:/Users/stories2/Documents/RProject/")
+getwd()
+
+gwangjuWeather <- read.csv("광주/SURFACE_ASOS_156_DAY_2010_2016_2016.csv", stringsAsFactors = FALSE)
+str(gwangjuWeather)
+
+daeguWeather <- read.csv("대구/SURFACE_ASOS_281_DAY_2010_2016_2016.csv", stringsAsFactors = FALSE)
+str(daeguWeather)
+
+daejeonWeather <- read.csv("대전/SURFACE_ASOS_133_DAY_2010_2016_2016.csv", stringsAsFactors = FALSE)
+str(daejeonWeather)
+
+busanWeather <- read.csv("부산/SURFACE_ASOS_159_DAY_2010_2016_2016.csv", stringsAsFactors = FALSE)
+str(busanWeather)
+
+seoulWeather <- read.csv("서울/SURFACE_ASOS_108_DAY_2010_2016_2016.csv", stringsAsFactors = FALSE)
+str(seoulWeather)
+
+suwonWeather <- read.csv("수원/SURFACE_ASOS_119_DAY_2010_2016_2016.csv", stringsAsFactors = FALSE)
+str(suwonWeather)
+
+incheonWeather <- read.csv("인천/SURFACE_ASOS_112_DAY_2010_2016_2016.csv", stringsAsFactors = FALSE)
+str(incheonWeather)
+
+changwonWeather <- read.csv("창원/SURFACE_ASOS_155_DAY_2010_2016_2016.csv", stringsAsFactors = FALSE)
+str(changwonWeather)
+
+baseballTeamVSTeamData <- read.csv("TeamVSTeam2.csv", stringsAsFactors = FALSE)
+notDeleteIndex <- which((baseballTeamVSTeamData$팀1 == '두산' | 
+                           baseballTeamVSTeamData$팀1 == 'NC' |
+                           baseballTeamVSTeamData$팀1 == '넥센' |
+                           baseballTeamVSTeamData$팀1 == 'LG' |
+                           baseballTeamVSTeamData$팀1 == 'KIA' |
+                           baseballTeamVSTeamData$팀1 == 'SK' |
+                           baseballTeamVSTeamData$팀1 == '한화' |
+                           baseballTeamVSTeamData$팀1 == '롯데' |
+                           baseballTeamVSTeamData$팀1 == '삼성' |
+                           baseballTeamVSTeamData$팀1 == 'kt') & 
+                          (baseballTeamVSTeamData$팀2 == '두산' |
+                             baseballTeamVSTeamData$팀2 == 'NC' |
+                             baseballTeamVSTeamData$팀2 == '넥센' |
+                             baseballTeamVSTeamData$팀2 == 'LG' |
+                             baseballTeamVSTeamData$팀2 == 'KIA' |
+                             baseballTeamVSTeamData$팀2 == 'SK' |
+                             baseballTeamVSTeamData$팀2 == '한화' |
+                             baseballTeamVSTeamData$팀2 == '롯데' |
+                             baseballTeamVSTeamData$팀2 == '삼성' |
+                             baseballTeamVSTeamData$팀2 == 'kt'))
+baseballTeamVSTeamData <- baseballTeamVSTeamData[notDeleteIndex, ]
+str(baseballTeamVSTeamData)
+
+splitedDate <- (strsplit(baseballTeamVSTeamData$날짜, "[ ]"))
+#str(splitedDate)
+head(splitedDate[[2]][1])
+
+dataLength = length(splitedDate)
+dataLength
+
+onlyContainsDateIndex <- c(1:dataLength * 2 - 1)
+head(onlyContainsDateIndex)
+str(onlyContainsDateIndex)
+
+splitedDate <- unlist(splitedDate)
+str(splitedDate)
+
+onlyContainsDate <- splitedDate[onlyContainsDateIndex]
+head(onlyContainsDate)
+str(onlyContainsDate)
+
+head(busanWeather["일시"])
+
+#onlyContainsDate <- as.data.frame(onlyContainsDate)
+head(onlyContainsDate)
+head(busanWeather$일시)
+
+#onlyContainsDate[2]
+#index <- which(busanWeather$일시 == onlyContainsDate[1])
+#index
+#resultIndex <- c(resultIndex, index)
+#resultIndex
+index <- 1
+baseballPlayedDate <- c()
+for(index in 1:dataLength)
+{
+  containIndex <- which(busanWeather$일시 == onlyContainsDate[index])
+  containIndex
+  baseballPlayedDate <- c(baseballPlayedDate, containIndex)
+}
+head(baseballPlayedDate)
+
+#경기를 한 날짜만 골라내기
+busanWeather <- busanWeather[baseballPlayedDate, ]
+changwonWeather <- changwonWeather[baseballPlayedDate, ]
+daeguWeather <- daeguWeather[baseballPlayedDate, ]
+daejeonWeather <- daejeonWeather[baseballPlayedDate, ]
+gwangjuWeather <- gwangjuWeather[baseballPlayedDate, ]
+incheonWeather <- incheonWeather[baseballPlayedDate, ]
+seoulWeather <- seoulWeather[baseballPlayedDate, ]
+suwonWeather <- suwonWeather[baseballPlayedDate, ]
+
+#testVal <- c("test", "test1", "test2")
+#if(any(testVal == "te")){print ("hi")}
+#grep("te", testVal, value = TRUE)
+
+baseballNotPlayedDateData <- grep("2016", baseballTeamVSTeamData$날짜, value = TRUE)
+head(baseballNotPlayedDateData)
+baseballNotPlayedDateDataLength = length(baseballNotPlayedDateData)
+
+baseballNotPlayedDateIndex <- c()
+for(index in 1:baseballNotPlayedDateDataLength)
+{
+  baseballNotPlayedDateIndex <- c(baseballNotPlayedDateIndex,
+                                  which(baseballTeamVSTeamData$날짜 == baseballNotPlayedDateData[index]))
+}
+head(baseballNotPlayedDateIndex)
+
+baseballTeamVSTeamData <- baseballTeamVSTeamData[-baseballNotPlayedDateIndex, ]
+#날씨 데이터에서 2016년도 데이터가 없기 때문에 야구 데이터도 2016년도는 빼준다
+
+#busanWeatherTemp <- busanWeather
+#busanWeatherTemp <- busanWeatherTemp[, c(3:6, 13:15, 17:18, 20, 22:23, 25:27)]
+#str(busanWeatherTemp)
+#head(busanWeatherTemp)
+
+#head(busanWeatherTemp[2])
+#busanWeatherTemp[2, 1]
+#for(index in 1:15)
+#{
+#  naIndex <- which(is.na(busanWeatherTemp[index]))
+#  busanWeatherTemp[naIndex, index] <- 0#mean(busanWeatherTemp[index])
+#}
+#head(busanWeatherTemp)
+
+WeatherDataCleanFunc <- function(weather)
+{
+  weather <- weather[, c(3:6, 13:15, 17:18, 20, 22:23, 25:27)]
+  for(index in 1:15)
+  {
+    naIndex <- which(is.na(weather[index]))
+    weather[naIndex, index] <- 0
+  }
+  return (weather)
+}
+
+busanWeather <- WeatherDataCleanFunc(busanWeather)
+changwonWeather <- WeatherDataCleanFunc(changwonWeather)
+daeguWeather <- WeatherDataCleanFunc(daeguWeather)
+daejeonWeather <- WeatherDataCleanFunc(daejeonWeather)
+gwangjuWeather <- WeatherDataCleanFunc(gwangjuWeather)
+incheonWeather <- WeatherDataCleanFunc(incheonWeather)
+seoulWeather <- WeatherDataCleanFunc(seoulWeather)
+suwonWeather <- WeatherDataCleanFunc(suwonWeather)
+#사용할 데이터만 가져오기
+
+str(busanWeather)
+str(baseballTeamVSTeamData)
+
+dataLength <- length(baseballTeamVSTeamData[, 1])
+baseballResultData <- rep(0, dataLength)
+
+teamNO1WinIndex <- which(baseballTeamVSTeamData$팀1.점수 > baseballTeamVSTeamData$팀2.점수 & 
+                           (baseballTeamVSTeamData$팀1.점수 >= 0 & baseballTeamVSTeamData$팀2.점수 >= 0))
+teamNO1LoseIndex <- which(baseballTeamVSTeamData$팀1.점수 < baseballTeamVSTeamData$팀2.점수& 
+                            (baseballTeamVSTeamData$팀1.점수 >= 0 & baseballTeamVSTeamData$팀2.점수 >= 0))
+teamNO1DrawIndex <- which(baseballTeamVSTeamData$팀1.점수 == baseballTeamVSTeamData$팀2.점수& 
+                            (baseballTeamVSTeamData$팀1.점수 >= 0 & baseballTeamVSTeamData$팀2.점수 >= 0))
+teamNotPlayedIndex <- which(baseballTeamVSTeamData$팀1.점수 < 0 & baseballTeamVSTeamData$팀2.점수 < 0)
+
+baseballResultData[teamNO1WinIndex] <- 1
+baseballResultData[teamNO1DrawIndex] <- 2
+baseballResultData[teamNO1LoseIndex] <- 3
+baseballResultData[teamNotPlayedIndex] <- 0
+
+baseballTeamVSTeamDataCleaned <- baseballTeamVSTeamData[, c(2:3, 9)]
+#팀 장소 
+
+baseballNaiveBayes <- cbind(baseballTeamVSTeamDataCleaned, baseballResultData)
+baseballNaiveBayes <- cbind(baseballNaiveBayes, busanWeather)
+baseballNaiveBayes <- cbind(baseballNaiveBayes, changwonWeather)
+baseballNaiveBayes <- cbind(baseballNaiveBayes, daeguWeather)
+baseballNaiveBayes <- cbind(baseballNaiveBayes, daejeonWeather)
+baseballNaiveBayes <- cbind(baseballNaiveBayes, gwangjuWeather)
+baseballNaiveBayes <- cbind(baseballNaiveBayes, incheonWeather)
+baseballNaiveBayes <- cbind(baseballNaiveBayes, seoulWeather)
+baseballNaiveBayes <- cbind(baseballNaiveBayes, suwonWeather)
+
+baseballNaiveBayes$팀1 <- as.factor(baseballNaiveBayes$팀1)
+baseballNaiveBayes$팀2 <- as.factor(baseballNaiveBayes$팀2)
+baseballNaiveBayes$장소 <- as.factor(baseballNaiveBayes$장소)
+str(baseballNaiveBayes)
+baseballNaiveBayes$팀1 <- as.numeric(baseballNaiveBayes$팀1)
+baseballNaiveBayes$팀2 <- as.numeric(baseballNaiveBayes$팀2)
+baseballNaiveBayes$장소 <- as.numeric(baseballNaiveBayes$장소)
+
+names(baseballNaiveBayes) <- c(1:3, "target", 5:124)
+str(baseballNaiveBayes)
+
+naiveBayesInput <- c(1:3, 5:124)
+naiveBayesTarget <- 4
+
+naiveBayesInputData <- baseballNaiveBayes[, naiveBayesInput]
+naiveBayesTargetData <- as.factor(baseballNaiveBayes[, naiveBayesTarget])
+baseballNaiveBayes <- as.data.frame(baseballNaiveBayes)
+
+naiveTrainSampleIndex <- sample(1:dataLength, round(0.7 * dataLength))
+naiveTrainData <- baseballNaiveBayes[naiveTrainSampleIndex, ]
+naiveTestData <- baseballNaiveBayes[-naiveTrainSampleIndex, ]
+
+#str(baseballNaiveBayes)
+
+#foundDiffIndex <- which(is.na(baseballNaiveBayes$`1`))
+
+naiveBayesModel <- naiveBayes(target ~ ., data = naiveTrainData)
+naiveBayesModel$apriori
+naiveBayesModel$tables
+
+naivePosterior <- predict(naiveBayesModel, naiveTestData, type = "raw")
+naivePosterior
+
+naivePrey <- predict(naiveBayesModel, naiveTestData, type = "class")
+naivePrey
